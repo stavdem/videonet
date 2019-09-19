@@ -28,7 +28,7 @@ class MyFrame(Frame):
         self.parent.geometry('%dx%d+%d+%d' % (w, h, x, y))
         
         lbl = Label(self, text='Необходимо выбрать отчет VideoNet в формате "csv"', font=("Helvetica", 12))
-        lbl.grid(row=0, column=1, columnspan=5, sticky=W, padx=10, pady=5)
+        lbl.grid(row=0, column=1, columnspan=3, sticky=W, padx=10, pady=5)
 
         scroll = Scrollbar(self, orient=HORIZONTAL)
         scroll.grid(row=3, column=2, columnspan=2, sticky=E+W)
@@ -50,7 +50,7 @@ class MyFrame(Frame):
         self.button4.grid(row=5, column=1, sticky=W, pady=20)
   
     def load_file(self):
-        self.selected_file = askopenfilename(initialdir = "./rezerv",
+        self.selected_file = askopenfilename(initialdir = "./",
                                      title = "Select file",
                                      filetypes = (("CSV files","*.csv"),
                                                   ("all files","*.*")))
