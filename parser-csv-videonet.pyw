@@ -28,12 +28,11 @@ class MyFrame(Frame):
         self.parent.geometry('%dx%d+%d+%d' % (w, h, x, y))
         
         lbl = Label(self, text='Необходимо выбрать отчет VideoNet в формате "csv"', font=("Helvetica", 12))
-        lbl.grid(row=0, column=1, columnspan=3, sticky=W, padx=10, pady=5)
-
+        lbl.grid(row=0, column=1, columnspan=5, sticky=W, padx=10, pady=5)
         scroll = Scrollbar(self, orient=HORIZONTAL)
         scroll.grid(row=3, column=2, columnspan=2, sticky=E+W)
         self.output = Entry(self, width=60, justify=LEFT, xscrollcommand=scroll.set)
-        self.output.grid(row=2, column=2, columnspan=2, sticky=W)
+        self.output.grid(row=2, column=2, columnspan=2, sticky=E+W)
         scroll.config(command=self.output.xview)
         self.button = Button(self, text="Выбрать файл", command=self.load_file, width=12)
         self.button.grid(row=2, column=1, sticky=W, pady=0)
@@ -61,9 +60,9 @@ class MyFrame(Frame):
     def start(self):
         text_result = StringVar()
         file_exist = StringVar()
-        lbl_result = Label(self, textvariable = text_result, width=55, anchor=W, justify=LEFT, fg='green', font = ('Sans','10','bold'))
+        lbl_result = Label(self, textvariable = text_result, width=45, anchor=W, justify=LEFT, fg='green', font = ('Sans','10','bold'))
         lbl_result.grid(row=5, column=2, columnspan=2, sticky=W, padx=0)
-        lbl_file_exist = Label(self, textvariable = file_exist, width=55, anchor=W, justify=LEFT, fg='red', font=("Sans",'10'))
+        lbl_file_exist = Label(self, textvariable = file_exist, width=15, anchor=W, justify=LEFT, fg='red', font=("Sans",'10'))
         lbl_file_exist.grid(row=6, column=1, columnspan=2, sticky=W, padx=2)
         
         MyFrame.name_for_save = self.deftext.get()
@@ -81,7 +80,6 @@ class MyFrame(Frame):
                     text_result.set('Готово! Имя файла: ' + MyFrame.name_for_save)
             else:
                 file_exist.set('Файл не найден!')
-
         else:
             file_exist.set('Файл не выбран!')
                   
@@ -93,84 +91,82 @@ class Def_file_name():
     
 
 class Pars_csv():
-    def writecsv(self, cur_date_full, cur_source, in_or_out_temp, user_temp):
+    def writecsv(self, current_date_full, source, entry_or_exit_temp, user):
         with open(MyFrame.name_for_save, 'a', newline='', encoding='cp1251') as csvfile:                        
                 csvfile = csv.writer(csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                csvfile.writerow([cur_date_full, cur_source, in_or_out_temp, user_temp])        
+                csvfile.writerow([current_date_full, source, entry_or_exit_temp, user])        
     
     def processing(self, selected_file):
-        users = []
-        users_out = []
-        date_s = []
-        date_s_out = []
-        door = []
-        door_out = []
-        in_and_out = []
-        in_and_out_2 = []
+        first_event_for_user = []
+        last_event_for_user = []
+        first_event_for_date = []
+        last_event_for_date = []
+        first_event_for_source = []
+        last_event_for_source = []
+        first_entry_or_exit = []
+        last_entry_or_exit = []
         sutki = 0
-        n = 0
-        pattern = r"В[ы]?ход\s{1}\w{2,}\s{1}\w{2,}" # Шаблон "В(ы)ход Фамилия Имя"
+        pattern = r"В[ы]?ход\s{1,}\w{2,}\s{1,}\w{2,}" 
+        with open(selected_file, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+            row_count = len(list(reader))       
         self.writecsv('Дата и время', 'Источник', 'Событие', 'ФИО')
         with open(selected_file, newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
             for row in reader:
-                n += 1
-                if n <=3:
+                if reader.line_num <=3:
                     continue
                 else:
-                    cur_date_full = row[0]
-                    cur_date = cur_date_full
-                    cur_source = row[1]
+                    current_date_full = row[0]
+                    source = row[1]
                     cur_text = row[2]
-                    cur_date = cur_date[:10]
-                    result = re.search(pattern, cur_text)# Поиск по шаблону "Вход (Выход) Фамилия"
-                    
+                    current_date = current_date_full[:10]
+                    result = re.search(pattern, cur_text)                 
                     if result:
-                        user_temp = result[0][5:].lstrip()
-                        in_or_out_temp = result[0][:5].rstrip()
-                        
-
-                        if cur_date == sutki:
-                            if user_temp in users:
-                                if user_temp in users_out:
-                                    for index, value in enumerate(users_out):
-                                        if value == user_temp:
-                                            date_s_out[index] = cur_date_full
-                                            door_out[index] = cur_source
-                                            in_and_out_2[index] = in_or_out_temp
-                                else:
-                                    users_out.append(user_temp)
-                                    date_s_out.append(cur_date_full)
-                                    door_out.append(cur_source)
-                                    in_and_out_2.append(in_or_out_temp)
-
-                            else:
-                                date_s.append(cur_date_full)
-                                door.append(cur_source)
-                                in_and_out.append(in_or_out_temp)
-                                users.append(user_temp)
-                                self.writecsv(cur_date_full, cur_source, in_or_out_temp, user_temp)
-                                                       
+                        user = result[0][5:].lstrip()
+                        entry_or_exit_temp = result[0][:5].rstrip()                      
+                        if current_date == sutki:
+                            if user in first_event_for_user:
+                                if user in last_event_for_user:
+                                    for index, value in enumerate(last_event_for_user): 
+                                        if value == user: 
+                                            last_event_for_date[index] = current_date_full
+                                            last_event_for_source[index] = source
+                                            last_entry_or_exit[index] = entry_or_exit_temp
+                                else: 
+                                    last_event_for_user.append(user)
+                                    last_event_for_date.append(current_date_full)
+                                    last_event_for_source.append(source)
+                                    last_entry_or_exit.append(entry_or_exit_temp)
+                            else: 
+                                first_event_for_date.append(current_date_full)
+                                first_event_for_source.append(source)
+                                first_entry_or_exit.append(entry_or_exit_temp)
+                                first_event_for_user.append(user)
+                                self.writecsv(current_date_full, source, entry_or_exit_temp, user)                                                      
                         else:
-                            sutki = cur_date
-                            for index_us, value_us in enumerate(users_out):
-                                self.writecsv(date_s_out[index_us], door_out[index_us], in_and_out_2[index_us], value_us)
-                            users.clear()
-                            users_out.clear()
-                            date_s.clear()
-                            in_and_out.clear()
-                            door.clear()
-                            date_s_out.clear()
-                            in_and_out_2.clear()
-                            door_out.clear()
+                            sutki = current_date
+                            for index_us, value_us in enumerate(last_event_for_user):                            
+                                self.writecsv(last_event_for_date[index_us], last_event_for_source[index_us], last_entry_or_exit[index_us], value_us)
+                            first_event_for_user.clear()
+                            last_event_for_user.clear()
+                            first_event_for_date.clear()
+                            first_entry_or_exit.clear()
+                            first_event_for_source.clear()
+                            last_event_for_date.clear()
+                            last_entry_or_exit.clear()
+                            last_event_for_source.clear()
 
-                            date_s.append(cur_date_full)
-                            door.append(cur_source)
-                            in_and_out.append(in_or_out_temp)
-                            users.append(user_temp)
-                            self.writecsv(cur_date_full, cur_source, in_or_out_temp, user_temp)
+                            first_event_for_date.append(current_date_full)
+                            first_event_for_source.append(source)
+                            first_entry_or_exit.append(entry_or_exit_temp)
+                            first_event_for_user.append(user)
+                            self.writecsv(current_date_full, source, entry_or_exit_temp, user)
+                    if reader.line_num == row_count: 
+                        for index_us, value_us in enumerate(last_event_for_user): 
+                            self.writecsv(last_event_for_date[index_us], last_event_for_source[index_us], last_entry_or_exit[index_us], value_us)
+
                         
-
 def main():
     root = Tk()
     app = MyFrame(root)
